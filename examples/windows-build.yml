@@ -1,0 +1,64 @@
+# TEMPLATE ONLY: this file is intentionally outside .github/workflows and cannot execute.
+# Replace FULL_COMMIT_SHA and configure all referenced protected vars/secrets before use.
+name: Windows build with central tool actions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2025
+    environment: licensed-build
+    steps:
+      - uses: actions/checkout@FULL_COMMIT_SHA
+
+      - uses: SullyDevSquad/windows-tool-actions/setup-dotnet-framework@FULL_COMMIT_SHA
+        with:
+          version: "4.8"
+
+      - uses: SullyDevSquad/windows-tool-actions/setup-msbuild@FULL_COMMIT_SHA
+        with:
+          vs-version: "17.0"
+          required-components: >-
+            Microsoft.Net.Component.4.8.SDK,
+            Microsoft.Net.Component.4.8.TargetingPack
+
+      - uses: SullyDevSquad/windows-tool-actions/setup-wix@FULL_COMMIT_SHA
+        with:
+          version: "6.0.2"
+          source-url: ${{ vars.WIX_ZIP_URL }}
+          sha256: ${{ vars.WIX_ZIP_SHA256 }}
+
+      - uses: SullyDevSquad/windows-tool-actions/setup-node-npm@FULL_COMMIT_SHA
+        with:
+          node-version: "24"
+          cache: npm
+          lockfile: package-lock.json
+          registry-url: ${{ vars.NPM_REGISTRY_URL }}
+          scope: ${{ vars.NPM_SCOPE }}
+
+      - uses: SullyDevSquad/windows-tool-actions/setup-msxsl@FULL_COMMIT_SHA
+        with:
+          binary-url: ${{ vars.MSXSL_BINARY_URL }}
+          sha256: ${{ vars.MSXSL_BINARY_SHA256 }}
+
+      - uses: SullyDevSquad/windows-tool-actions/setup-typemock@FULL_COMMIT_SHA
+        with:
+          version: "9.3.5"
+          installer-url: ${{ vars.TYPEMOCK_INSTALLER_URL }}
+          sha256: ${{ vars.TYPEMOCK_INSTALLER_SHA256 }}
+          silent-install-arguments-json: ${{ vars.TYPEMOCK_SILENT_ARGUMENTS_JSON }}
+          expected-executable: ${{ vars.TYPEMOCK_EXPECTED_EXECUTABLE }}
+          license-value: ${{ secrets.TYPEMOCK_LICENSE }}
+          activation-executable: ${{ vars.TYPEMOCK_ACTIVATION_EXE }}
+          activation-arguments-json: ${{ vars.TYPEMOCK_ACTIVATION_ARGUMENTS_JSON }}
+
+      - name: Build
+        shell: pwsh
+        run: '& "$env:MSBUILD_EXE_PATH" .\Product.sln -restore -m'
+
+      # Add a vendor-documented deactivation command here when required.
+      # It must use `if: ${{ always() }}` and must not print license material.

@@ -1,0 +1,28 @@
+name: Setup .NET Framework
+description: Validate an existing .NET Framework 4.8 runtime, SDK, targeting pack, and reference assemblies
+inputs:
+  version:
+    description: .NET Framework developer pack version (currently only 4.8)
+    required: false
+    default: "4.8"
+outputs:
+  release:
+    description: Installed .NET Framework release registry value
+    value: ${{ steps.setup.outputs.release }}
+  runtime-version:
+    description: Installed .NET Framework runtime product version
+    value: ${{ steps.setup.outputs.runtime-version }}
+  sdk-path:
+    description: .NET Framework 4.8 SDK directory
+    value: ${{ steps.setup.outputs.sdk-path }}
+  reference-assemblies:
+    description: .NET Framework 4.8 reference assemblies directory
+    value: ${{ steps.setup.outputs.reference-assemblies }}
+runs:
+  using: composite
+  steps:
+    - id: setup
+      shell: pwsh
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+      run: '& "$env:GITHUB_ACTION_PATH/scripts/Setup.ps1"'

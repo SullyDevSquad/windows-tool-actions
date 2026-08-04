@@ -1,0 +1,28 @@
+name: Setup MSXSL
+description: Provision a checksum-verified, caller-approved msxsl.exe and validate it with an XML transform
+inputs:
+  binary-url:
+    description: Approved HTTPS URL for an msxsl.exe binary
+    required: true
+  sha256:
+    description: SHA-256 of the approved msxsl.exe binary
+    required: true
+outputs:
+  path:
+    description: Full path to the validated msxsl.exe
+    value: ${{ steps.setup.outputs.path }}
+  sha256:
+    description: SHA-256 of the validated binary
+    value: ${{ steps.setup.outputs.sha256 }}
+  cache-hit:
+    description: Whether a matching binary was already in RUNNER_TOOL_CACHE
+    value: ${{ steps.setup.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    - id: setup
+      shell: pwsh
+      env:
+        INPUT_BINARY_URL: ${{ inputs.binary-url }}
+        INPUT_SHA256: ${{ inputs.sha256 }}
+      run: '& "$env:GITHUB_ACTION_PATH/scripts/Setup.ps1"'
