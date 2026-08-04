@@ -52,18 +52,25 @@ function Get-Wix3Installation {
         return $null
     }
 
+    try {
+        $candleOutput = (& $candle '-?' 2>&1 | Out-String)
+        $candleExitCode = $LASTEXITCODE
+        $lightOutput = (& $light '-?' 2>&1 | Out-String)
+        $lightExitCode = $LASTEXITCODE
+    }
+    catch {
+        return $null
+    }
+    if ($candleExitCode -ne 0 -or $lightExitCode -ne 0) {
+        return $null
+    }
+
     $versionText = @(
         [Diagnostics.FileVersionInfo]::GetVersionInfo($candle).ProductVersion
         [Diagnostics.FileVersionInfo]::GetVersionInfo($candle).FileVersion
+        $candleOutput
+        $lightOutput
     ) -join ' '
-    if ($versionText -notmatch '\b(3\.(?:11|14)\.1)\b') {
-        try {
-            $versionText = (& $candle '-?' 2>&1 | Out-String)
-        }
-        catch {
-            return $null
-        }
-    }
     if ($versionText -notmatch '\b(3\.(?:11|14)\.1)\b') {
         return $null
     }
