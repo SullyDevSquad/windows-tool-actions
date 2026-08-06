@@ -1,0 +1,52 @@
+name: Setup Node.js and npm
+description: Provision an explicit Node.js LTS major with the official setup-node action and validate node/npm
+inputs:
+  node-version:
+    description: Explicit even-numbered Node.js LTS major
+    required: false
+    default: "24"
+  cache:
+    description: Package manager cache; use npm or an empty string to disable
+    required: false
+    default: npm
+  lockfile:
+    description: Dependency file path used as the npm cache key
+    required: false
+    default: package-lock.json
+  registry-url:
+    description: Optional npm registry URL
+    required: false
+    default: ""
+  scope:
+    description: Optional npm scope
+    required: false
+    default: ""
+outputs:
+  node-version:
+    description: Installed Node.js semantic version
+    value: ${{ steps.verify.outputs.node-version }}
+  npm-version:
+    description: Installed npm semantic version
+    value: ${{ steps.verify.outputs.npm-version }}
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs
+      shell: pwsh
+      env:
+        INPUT_NODE_VERSION: ${{ inputs.node-version }}
+        INPUT_CACHE: ${{ inputs.cache }}
+      run: '& "$env:GITHUB_ACTION_PATH/scripts/ValidateInputs.ps1"'
+    - name: Provision Node.js
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.cache }}
+        cache-dependency-path: ${{ inputs.lockfile }}
+        registry-url: ${{ inputs.registry-url }}
+        scope: ${{ inputs.scope }}
+    - id: verify
+      shell: pwsh
+      env:
+        INPUT_NODE_VERSION: ${{ inputs.node-version }}
+      run: '& "$env:GITHUB_ACTION_PATH/scripts/Verify.ps1"'

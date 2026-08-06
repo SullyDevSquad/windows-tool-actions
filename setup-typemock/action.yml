@@ -1,0 +1,64 @@
+name: Setup Typemock Isolator
+description: Install and optionally activate an approved Typemock 9.3.5 installer without exposing license material
+inputs:
+  version:
+    description: Typemock version (currently only 9.3.5)
+    required: false
+    default: "9.3.5"
+  installer-url:
+    description: Caller-approved HTTPS vendor installer URL
+    required: true
+  sha256:
+    description: SHA-256 of the vendor installer
+    required: true
+  silent-install-arguments-json:
+    description: JSON array of vendor-documented silent installer arguments
+    required: true
+  expected-executable:
+    description: Absolute installed executable path used to validate the product version; environment variables are expanded
+    required: true
+  license-value:
+    description: Secret license value used only by structured activation arguments
+    required: false
+    default: ""
+  license-file:
+    description: Secret path to an existing license file used only by structured activation arguments
+    required: false
+    default: ""
+  activation-executable:
+    description: Optional absolute path to a vendor activation executable; invoked directly, never through a shell
+    required: false
+    default: ""
+  activation-arguments-json:
+    description: JSON string array; each argument may contain {license} or {license-file}
+    required: false
+    default: "[]"
+outputs:
+  path:
+    description: Validated installed executable
+    value: ${{ steps.setup.outputs.path }}
+  version:
+    description: Validated Typemock version
+    value: ${{ steps.setup.outputs.version }}
+  installer-ran:
+    description: Whether the installer ran
+    value: ${{ steps.setup.outputs.installer-ran }}
+  activated:
+    description: Whether the caller-supplied activation executable ran successfully
+    value: ${{ steps.setup.outputs.activated }}
+runs:
+  using: composite
+  steps:
+    - id: setup
+      shell: pwsh
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_INSTALLER_URL: ${{ inputs.installer-url }}
+        INPUT_SHA256: ${{ inputs.sha256 }}
+        INPUT_SILENT_ARGUMENTS_JSON: ${{ inputs.silent-install-arguments-json }}
+        INPUT_EXPECTED_EXECUTABLE: ${{ inputs.expected-executable }}
+        INPUT_LICENSE_VALUE: ${{ inputs.license-value }}
+        INPUT_LICENSE_FILE: ${{ inputs.license-file }}
+        INPUT_ACTIVATION_EXECUTABLE: ${{ inputs.activation-executable }}
+        INPUT_ACTIVATION_ARGUMENTS_JSON: ${{ inputs.activation-arguments-json }}
+      run: '& "$env:GITHUB_ACTION_PATH/scripts/Setup.ps1"'

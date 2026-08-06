@@ -1,0 +1,42 @@
+name: Hosted image drift
+
+on:
+  schedule:
+    - cron: "23 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-2025:
+    name: Windows 2025 prerequisites
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate .NET Framework 4.8 developer pack
+        uses: ./setup-dotnet-framework
+        with:
+          version: "4.8"
+
+      - name: Validate Visual Studio 2022 MSBuild
+        uses: ./setup-msbuild
+        with:
+          vs-version: "17.0"
+          required-components: >-
+            Microsoft.Net.Component.4.8.SDK,
+            Microsoft.Net.Component.4.8.TargetingPack
+
+      - name: Validate preinstalled WiX 3.14.1
+        uses: ./setup-wix
+        with:
+          version: "3.14.1"
+
+      - name: Validate Node.js 24 provisioning
+        uses: ./setup-node-npm
+        with:
+          node-version: "24"
+          cache: ""

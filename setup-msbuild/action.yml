@@ -1,0 +1,30 @@
+name: Setup MSBuild
+description: Locate and validate an existing Visual Studio 2022 MSBuild installation with vswhere
+inputs:
+  vs-version:
+    description: Visual Studio major.minor version line
+    required: false
+    default: "17.0"
+  required-components:
+    description: Comma or newline-separated Visual Studio component IDs that must be installed
+    required: false
+    default: ""
+outputs:
+  path:
+    description: Full path to MSBuild.exe
+    value: ${{ steps.setup.outputs.path }}
+  version:
+    description: Detected MSBuild version
+    value: ${{ steps.setup.outputs.version }}
+  installation-path:
+    description: Visual Studio installation root
+    value: ${{ steps.setup.outputs.installation-path }}
+runs:
+  using: composite
+  steps:
+    - id: setup
+      shell: pwsh
+      env:
+        INPUT_VS_VERSION: ${{ inputs.vs-version }}
+        INPUT_REQUIRED_COMPONENTS: ${{ inputs.required-components }}
+      run: '& "$env:GITHUB_ACTION_PATH/scripts/Setup.ps1"'

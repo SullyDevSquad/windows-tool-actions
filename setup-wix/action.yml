@@ -1,0 +1,37 @@
+name: Setup WiX Toolset
+description: Validate or provision an approved, checksum-verified WiX v3 or v6 ZIP distribution
+inputs:
+  version:
+    description: 6.x, an exact 6.y.z patch, 3.11.1, or 3.14.1
+    required: true
+  source-url:
+    description: Approved HTTPS URL for a ZIP distribution, required when the exact tool is not installed
+    required: false
+    default: ""
+  sha256:
+    description: SHA-256 of the approved ZIP distribution, required with source-url
+    required: false
+    default: ""
+outputs:
+  installed-version:
+    description: Validated WiX semantic version
+    value: ${{ steps.setup.outputs.installed-version }}
+  path:
+    description: Directory containing wix.exe or candle.exe and light.exe
+    value: ${{ steps.setup.outputs.path }}
+  major:
+    description: WiX major version
+    value: ${{ steps.setup.outputs.major }}
+  source:
+    description: preinstalled, tool-cache, or download
+    value: ${{ steps.setup.outputs.source }}
+runs:
+  using: composite
+  steps:
+    - id: setup
+      shell: pwsh
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_SOURCE_URL: ${{ inputs.source-url }}
+        INPUT_SHA256: ${{ inputs.sha256 }}
+      run: '& "$env:GITHUB_ACTION_PATH/scripts/Setup.ps1"'
